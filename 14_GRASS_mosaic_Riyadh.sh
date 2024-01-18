@@ -64,17 +64,73 @@ d.rast L8_2024_RGB
   input=L8_2023_02,L8_2023_03,L8_2023_05,L8_2023_06,L8_2023_07 --overwrite
 i.group group=L8_2023 subgroup=res_30m \
   input=L8_2023_02,L8_2023_06,L8_2023_07 --overwrite
-#
 # Clustering: generating signature file and report using k-means clustering algorithm
 i.cluster group=L8_2023 subgroup=res_30m \
   signaturefile=cluster_L8_2023 \
-  classes=8 reportfile=rep_clust_L8_2023.txt --overwrite
-
+  classes=12 reportfile=rep_clust_L8_2023.txt --overwrite
 # Classification by i.maxlik module
 i.maxlik group=L8_2023 subgroup=res_30m \
   signaturefile=cluster_L8_2023 \
   output=L8_2023_cluster_classes reject=L8_2023_cluster_reject --overwrite
+#------------------CLUSTERING AND CLASSIFICATION -------------------> 2024
+# grouping data by i.group
+#i.group group=L8_2024 subgroup=res_30m \
+  input=L8_2024_02,L8_2024_03,L8_2024_05,L8_2024_06,L8_2024_07 --overwrite
+i.group group=L8_2024 subgroup=res_30m \
+  input=L8_2024_02,L8_2024_06,L8_2024_07 --overwrite
+# Clustering: generating signature file and report using k-means clustering algorithm
+i.cluster group=L8_2024 subgroup=res_30m \
+  signaturefile=cluster_L8_2024 \
+  classes=12 reportfile=rep_clust_L8_2024.txt --overwrite
+# Classification by i.maxlik module
+i.maxlik group=L8_2024 subgroup=res_30m \
+  signaturefile=cluster_L8_2024 \
+  output=L8_2024_cluster_classes reject=L8_2024_cluster_reject --overwrite
+
+# Visualization
+r.colors L8_2023_cluster_classes color=roygbiv -e
+r.colors L8_2024_cluster_classes color=roygbiv -e
+#r.info L8_2024_cluster_classes
+d.mon wx1
+d.rast L8_2023_cluster_classes
+d.rast L8_2024_cluster_classes
+d.legend raster=L8_2023_cluster_classes font="Helvetica" title="Classes" title_fontsize=14 fontsize=12 bgcolor=white border_color=white -v
+#d.legend raster=L8_2024_cluster_classes font="Helvetica" title="2024" title_fontsize=14 fontsize=12 bgcolor=white border_color=white
+d.out.file output=MaxLike_mosaic_12 format=jpg --overwrite
 #
+#
+r.category L8_2024_cluster_classes
+echo "0 = NULL
+1     = 1
+2     = 2
+3     = 3
+4     = 4
+5     = 5
+6     = 11
+7     = 7
+8     = 8
+9     = 9
+10    = 10
+11    = 6
+12     = 12 " > landuserecl.txt
+
+r.reclass input=L8_2024_cluster_classes output=L8_2024_recl \
+  rules=landuserecl.txt \
+  title="Reclassified 2024" --overwrite
+# verify result
+r.category L8_2024_recl
+r.category L8_2023_cluster_classes
+
+# Visualization
+r.colors L8_2023_cluster_classes color=roygbiv -e
+r.colors L8_2024_recl color=roygbiv -e
+d.mon wx5
+d.rast L8_2023_cluster_classes
+d.rast L8_2024_recl
+d.legend raster=L8_2023_cluster_classes font="Helvetica" title="2023" title_fontsize=14 fontsize=12 bgcolor=white border_color=white
+d.legend raster=L8_2024_recl font="Helvetica" title="2024" title_fontsize=14 fontsize=12 bgcolor=white border_color=white
+d.out.file output=MaxLike_mosaic format=jpg --overwrite
+
 # # --------------------------------------------->
 # MACHINE LEARNING
 # First, we are going to generate some training pixels from an older (1996) land cover classification:
@@ -82,7 +138,7 @@ r.random input=L8_2023_cluster_classes seed=100 npoints=1000 raster=training_pix
 # Then use these training pixels to perform a classification on recent Landsat - 2022 image:
 # train a DecisionTreeClassifier model using r.learn.train
 r.learn.train group=L8_2023 training_map=training_pixels \
-    model_name=DecisionTreeClassifier n_estimators=500 save_model=Polina_model.gz --overwrite
+    model_name=RandomForestClassifier n_estimators=500 save_model=Polina_model.gz --overwrite
 # 1. 1st image
 # perform prediction using r.learn.predict
 r.learn.predict group=L8_2023 load_model=Polina_model.gz output=classification_2023 --overwrite
@@ -91,7 +147,7 @@ r.category classification_2023
 # 2. 2nd image
 # train a DecisionTreeClassifier model using r.learn.train
 r.learn.train group=L8_2024 training_map=training_pixels \
-    model_name=DecisionTreeClassifier n_estimators=500 save_model=Polina_model1.gz --overwrite
+    model_name=RandomForestClassifier n_estimators=500 save_model=Polina_model1.gz --overwrite
 # perform prediction using r.learn.predict
 r.learn.predict group=L8_2024 load_model=Polina_model1.gz output=classification_2024 --overwrite
 # check raster categories - they are automatically applied to the classification output
