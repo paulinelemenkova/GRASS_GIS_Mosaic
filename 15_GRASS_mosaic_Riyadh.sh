@@ -59,4 +59,9 @@ i.image.mosaic input=L8_2023_01,L8_2024_01 output=mosaic_2023_2024_aerosol
 d.mon wx3
 d.rast mosaic_2023_2024_aerosol
 d.out.file output=mosaic_2023_2024_aerosol format=jpg --overwrite
+#
+i.image.mosaic input=L8_2023_05,L8_2024_05 output=mosaic --overwrite
+d.mon wx0
+d.rast mosaic
+# except: 1, 4,
 
