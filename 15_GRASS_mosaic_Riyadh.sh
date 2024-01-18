@@ -12,14 +12,17 @@ r.in.gdal /Users/polinalemenkova/grassdata/SArabia/LC09_L2SP_166043_20240108_202
 r.in.gdal /Users/polinalemenkova/grassdata/SArabia/LC09_L2SP_166043_20240108_20240113_02_T1_SR_B4.TIF out=L8_2024_04
 r.info L8_2024_01
 # w=479985 e=708015 n=2831415 s=2599185
-r.region  raster=L8_2023_01 n=2831415 s=2599185 w=479985 e=861915
-r.region  raster=L8_2024_01 n=2831415 s=2599185 w=479985 e=861915
-
 r.composite blue=L8_2023_01 green=L8_2023_02 red=L8_2023_04 output=L8_2023_RGB --overwrite
-d.mon wx1
-d.rast L8_2023_RGB
 r.composite blue=L8_2024_01 green=L8_2024_02 red=L8_2024_04 output=L8_2024_RGB --overwrite
+# g.region to manage the boundary definitions for the geographic region.
+g.region raster=L8_2024_01 -p
+# w=635685 e=861915 n=2831415 s=2599185
+# set a new region for both rasters (to encompass both rasters)
+g.region w=479985 e=861915 n=2831415 s=2599185
+# set region for one raster (and print the results)
+g.region raster=L8_2024_RGB w=479985 e=861915 n=2831415 s=2599185 -p
+# display monitors from the command line with the defined region extent
 d.mon wx1
+# plot two maps side by side
+d.rast L8_2023_RGB
 d.rast L8_2024_RGB
-
-
